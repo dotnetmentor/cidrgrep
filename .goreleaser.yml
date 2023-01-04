@@ -3,23 +3,23 @@ before:
     - go mod download
     - go mod tidy
 builds:
-  - id: cli_template_name-darwin
+  - id: cidrgrep-darwin
     ldflags:
-      - -s -w -X github.com/cli_template_owner/cli_template_name/version.Version={{.Version}} -X github.com/cli_template_owner/cli_template_name/version.Commit={{.FullCommit}}
+      - -s -w -X github.com/dotnetmentor/cidrgrep/version.Version={{.Version}} -X github.com/dotnetmentor/cidrgrep/version.Commit={{.FullCommit}}
     goos:
       - darwin
     goarch:
       - amd64
       - arm64
-  - id: cli_template_name-linux
+  - id: cidrgrep-linux
     ldflags:
-      - -s -w -X github.com/cli_template_owner/cli_template_name/version.Version={{.Version}} -X github.com/cli_template_owner/cli_template_name/version.Commit={{.FullCommit}}
+      - -s -w -X github.com/dotnetmentor/cidrgrep/version.Version={{.Version}} -X github.com/dotnetmentor/cidrgrep/version.Commit={{.FullCommit}}
     goos:
       - linux
     goarch:
       - amd64
 archives:
-  - id: cli_template_name-archive
+  - id: cidrgrep-archive
     name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     format_overrides:
       - goos: darwin
@@ -38,18 +38,18 @@ changelog:
       - "^docs:"
       - "^test:"
 brews:
-  - name: cli_template_name
+  - name: cidrgrep
     tap:
-      owner: cli_template_owner
-      name: cli_template_homebrew_tap_name
+      owner: dotnetmentor
+      name: homebrew-tap
     commit_author:
-      name: "cli_template_fullname"
-    homepage: https://github.com/cli_template_owner/cli_template_name
+      name: "Kristoffer Ahl"
+    homepage: https://github.com/dotnetmentor/cidrgrep
     description: cli_template_description
-    license: cli_template_license
+    license: Apache License 2.0
     install: |
-      bin.install 'cli_template_name'
-      output = Utils.safe_popen_read("#{bin}/cli_template_name", 'completion', 'bash')
-      (bash_completion/'cli_template_name').write output
-      output = Utils.safe_popen_read("#{bin}/cli_template_name", 'completion', 'zsh')
-      (zsh_completion/'_cli_template_name').write output
+      bin.install 'cidrgrep'
+      output = Utils.safe_popen_read("#{bin}/cidrgrep", 'completion', 'bash')
+      (bash_completion/'cidrgrep').write output
+      output = Utils.safe_popen_read("#{bin}/cidrgrep", 'completion', 'zsh')
+      (zsh_completion/'_cidrgrep').write output
