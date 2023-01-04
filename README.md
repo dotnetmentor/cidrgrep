@@ -1,6 +1,6 @@
 # cidrgrep
 
-cli_template_description
+like grep but for IP/CIDR matching
 
 ## Install
 

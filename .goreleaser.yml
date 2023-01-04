@@ -45,7 +45,7 @@ brews:
     commit_author:
       name: "Kristoffer Ahl"
     homepage: https://github.com/dotnetmentor/cidrgrep
-    description: cli_template_description
+    description: like grep but for IP/CIDR matching
     license: Apache License 2.0
     install: |
       bin.install 'cidrgrep'
