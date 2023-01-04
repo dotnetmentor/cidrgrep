@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+ask_for() {
+  if [[ "${!1}" == "" ]] && [[ "${!1}" != 'abort' ]]; then
+    echo -n "  ${2:?'A prompt text must be specified'}: "
+    read -r "${1:?'A prompt variable name must be specified'}"
+    echo
+  fi
+}
+
+ask_continue() {
+  echo -n "Press [ENTER] to continue..."
+  # shellcheck disable=SC2034
+  read -r proceed
+}
+
+init() {
+  echo 'Initializing new cli'
+  echo
+
+  local -r default_name="$(basename "${PWD:?}")"
+  local -r default_owner="$(git config --global --get github.user 2>/dev/null)"
+  local -r default_fullname="$(git config --global --get user.name 2>/dev/null)"
+  local -r default_homebrew_tap_name='homebrew-tap'
+  local -r default_license='Apache License 2.0'
+
+  ask_for template_name "name (default: ${default_name:?})"
+  template_name="${template_name:-${default_name:?}}"
+  [[ "${template_name:?'name is required'}" ]]
+
+  ask_for template_description 'description (optional)'
+
+  ask_for template_owner "owner (eg. github.com/<owner>, default: ${default_owner:-})"
+  template_owner="${template_owner:-${default_owner:-}}"
+  [[ "${template_owner:?'owner is required'}" ]]
+
+  ask_for template_fullname "full name (default: ${default_fullname:-})"
+  template_fullname="${template_fullname:-${default_fullname:-}}"
+  [[ "${template_fullname:?'full name is required'}" ]]
+
+  ask_for template_homebrew_tap_name "homebrew tap name (eg. github.com/${template_owner:?}/${default_homebrew_tap_name:?})"
+  template_homebrew_tap_name="${template_homebrew_tap_name:-${default_homebrew_tap_name:?}}"
+  [[ "${template_homebrew_tap_name:?'homebrew tap name is required'}" ]]
+
+  ask_for template_license "license (default: ${default_license:?})"
+  template_license="${template_license:-${default_license:?}}"
+  [[ "${template_license:?'license is required'}" ]]
+
+  ask_continue
+
+  for p in ./.* ./** ./**/*; do
+    if [[ -f "${p:?}" ]]; then
+      case "${p:?}" in
+        './init' | "./${template_name:?}")
+          continue
+          ;;
+      esac
+      echo "processing file ${p:?}..."
+      sed -i.backup "s/cli_template_name/${template_name:?}/g" "${p:?}"
+      sed -i.backup "s/cli_template_description/${template_description:-}/g" "${p:?}"
+      sed -i.backup "s/cli_template_owner/${template_owner:?}/g" "${p:?}"
+      sed -i.backup "s/cli_template_fullname/${template_fullname:?}/g" "${p:?}"
+      sed -i.backup "s/cli_template_homebrew_tap_name/${template_homebrew_tap_name:?}/g" "${p:?}"
+      sed -i.backup "s/cli_template_license/${template_license:?}/g" "${p:?}"
+    fi
+  done
+
+  rm -f ./.*.backup
+  rm -f ./*.backup
+  rm -f ./**/*.backup
+
+  echo
+  git add .
+  git commit -m "Initialized new cli ${template_name:?}."
+}
+
+init "$@"
