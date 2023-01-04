@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"net"
 	"os"
 	"time"
 
@@ -12,6 +14,8 @@ import (
 )
 
 type GlobalOptions struct {
+	CIDR  string
+	Debug bool
 }
 
 var (
@@ -20,10 +24,55 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:          "cidrgrep",
-	Short:        "cidrgrep - short description",
-	Long:         `cidrgrep - long description`,
+	Short:        "cidrgrep - CIDR grepping",
+	Long:         `cidrgrep - like grep but for CIDR/IP matching`,
 	SilenceUsage: true,
 	Version:      fmt.Sprintf("%s (commit=%s)", version.Version, version.Commit),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if opt.CIDR == "" {
+			return fmt.Errorf("CIDR flag required")
+		}
+		log.Output(os.Stderr)
+
+		if !opt.Debug {
+			zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+		}
+
+		_, cidr, err := net.ParseCIDR(opt.CIDR)
+		if err != nil {
+			return err
+		}
+
+		found := false
+		scanner := bufio.NewScanner(os.Stdin)
+
+		for scanner.Scan() {
+			line := scanner.Text()
+			ip := net.ParseIP(line)
+			if ip == nil {
+				os.Stderr.WriteString(fmt.Sprintf("\"%s\" is not a valid IP\n", line))
+				continue
+			}
+
+			if cidr.Contains(ip) {
+				found = true
+				os.Stdout.WriteString(fmt.Sprintf("%s\n", ip))
+				log.Debug().Msgf("The IP \"%s\" is within the CIDR \"%s\"", ip, cidr)
+			} else {
+				log.Debug().Msgf("The IP \"%s\" is NOT within the CIDR \"%s\"", ip, cidr)
+			}
+		}
+
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+
+		if !found {
+			return fmt.Errorf("no matches found")
+		}
+
+		return nil
+	},
 }
 
 func Execute() {
@@ -34,4 +83,9 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func init() {
+	rootCmd.Flags().StringVarP(&opt.CIDR, "cidr", "c", "", "CIDR to match")
+	rootCmd.Flags().BoolVarP(&opt.Debug, "debug", "d", false, "Run in debug mode")
 }
