@@ -29,6 +29,21 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 	Version:      fmt.Sprintf("%s (commit=%s)", version.Version, version.Commit),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 2 && args[0] == "completion" {
+			fmt.Println("doing completion work...")
+			switch args[1] {
+			case "bash":
+				cmd.Root().GenBashCompletion(os.Stdout)
+			case "zsh":
+				cmd.Root().GenZshCompletion(os.Stdout)
+			case "fish":
+				cmd.Root().GenFishCompletion(os.Stdout, true)
+			case "powershell":
+				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			}
+			return nil
+		}
+
 		if opt.CIDR == "" {
 			return fmt.Errorf("CIDR flag required")
 		}
